@@ -127,11 +127,18 @@ MB MF  Stand for Music Background and Music Foreground. MB places a maximum of 3
                             bool flat = false;
                             bool sharp = false;
                             bool dotted = false;
+                            bool doubledotted = false;
                             PlayNote n = new PlayNote();
                             i++;
                             if (i < snd.Length && snd[i] == '+') { sharp = true; i++; }
                             if (i < snd.Length && snd[i] == '-') { flat = true; i++; }
-                            if (i < snd.Length && snd[i] == '.') { dotted = true; i++; }
+                            if (i < snd.Length && snd[i] == '.') { dotted = true; i++;
+                                if (snd[i] == '.')
+                                {
+                                    doubledotted = true;
+                                    i++;
+                                }
+                            }
 
                             if (i < snd.Length && char.IsDigit(snd[i]))
                             {
@@ -142,6 +149,17 @@ MB MF  Stand for Music Background and Music Foreground. MB places a maximum of 3
                                     i++;
                                 }
                                 int duration = int.Parse(val);
+
+                                if (i < snd.Length && snd[i] == '+') { sharp = true; i++; }
+                                if (i < snd.Length && snd[i] == '-') { flat = true; i++; }
+                                if (i < snd.Length && snd[i] == '.') { dotted = true; i++;
+                                    if (snd[i] == '.')
+                                    {
+                                        doubledotted = true;
+                                        i++;
+                                    }
+                                }
+
                                 n.Note = c;
                                 n.Length = duration;
                             }
@@ -150,6 +168,7 @@ MB MF  Stand for Music Background and Music Foreground. MB places a maximum of 3
                             n.Flat = flat;
                             n.Sharp = sharp;
                             n.Dotted = dotted;
+                            n.DoubleDotted = doubledotted;
                             commands.Add(n);
                             i--;
 
@@ -238,6 +257,10 @@ MB MF  Stand for Music Background and Music Foreground. MB places a maximum of 3
                         noteseconds = noteseconds * (3.0 / 4.0);
                         pause = totalseconds - noteseconds;
                     }
+                    if (n.DoubleDotted)
+                        noteseconds += (noteseconds / 2.0) + (noteseconds / 4.0);
+                    else if (n.Dotted)
+                        noteseconds += (noteseconds / 2.0);
                     Tone(herz, noteseconds);
                     if (pause > 0.0)
                         Tone(0, pause);
@@ -269,8 +292,10 @@ MB MF  Stand for Music Background and Music Foreground. MB places a maximum of 3
                 int value = (int)(amplitude * Math.Sin((2.0 * Math.PI * n * hz) / sampleRate));
                 if (value > 4)
                     value = 127;
+                else
                 if (value < -4)
                     value = -127;
+                else value = 0;
                 d[n] = (byte)(128 - value);
             }
             data.Add(d);
@@ -313,6 +338,7 @@ MB MF  Stand for Music Background and Music Foreground. MB places a maximum of 3
             foreach (byte[] d in data)
                 wr.Write(d);
             wr.Close();
+            //System.Diagnostics.Process.Start(outfile);
         }
     }
 }

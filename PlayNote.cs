@@ -5,6 +5,7 @@
         public char Note;
         public int Length;
         public bool Dotted;
+        public bool DoubleDotted;
         public bool Sharp;
         public bool Flat;
 
